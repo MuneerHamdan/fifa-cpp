@@ -1,7 +1,7 @@
-#include <SFML/Graphics.hpp>
-#include <SFML/Window.hpp>
 #include <iostream>
 #include <stdlib.h>
+#include <SFML/Graphics.hpp>
+#include <SFML/Window.hpp>
 
 #define WIDTH (VideoMode::getDesktopMode().size.x / 2)
 #define HEIGHT (VideoMode::getDesktopMode().size.y / 2)
@@ -26,8 +26,10 @@ class Circle {
     float m_sy;
 
     bool m_active;
-  public:
 
+    Font m_font("/usr/share/fonts/TTF/Arial.ttf");
+    Text m_text(m_font, to_string(m_num), 30);
+  public:
     Circle() {
       m_num = 0;
       m_radius = 0.0;
@@ -35,6 +37,8 @@ class Circle {
       m_sx = 0.0;
       m_sy = 0.0;
       m_active = false;
+
+      m_font = Font("/usr/share/fonts/TTF/Arial.ttf");
     }
 
     Circle(int num, float radius, Color color) {
@@ -45,22 +49,25 @@ class Circle {
       m_sy = 0.0;
       m_active = false;
 
-      srand(m_num * time(NULL));
-      float w = rand() % (WIDTH - 10 + 1) + 10;
-      float h = rand() % (HEIGHT - 10 + 1) + 10;
-
       m_circle = CircleShape(rand() % (30 - 10 + 1) + 10, 30);
       m_circle.setOrigin({m_circle.getRadius() / 2, m_circle.getRadius() / 2});
-      m_circle.setPosition({w, h});
+      m_circle.setPosition({0, 0});
       m_circle.setFillColor(m_color);
+
+      m_font = Font("/usr/share/fonts/TTF/Arial.ttf");
     }
 
     Vector2f getpos() {
       return m_circle.getPosition();
     }
 
+    void setpos(Vector2f pos) {
+      m_circle.setPosition(pos);
+    }
+
     void draw(RenderWindow* window) {
       window->draw(m_circle);
+      window->draw(m_text);
     }
 
     bool getactive() {
@@ -104,10 +111,13 @@ class Circle {
       m_sy = sy;
     }
 
+    CircleShape* getcircle() {
+      return &m_circle;
+    }
+
     void move() {
+
       m_circle.move({m_sx, m_sy});
-
-
 
       if (m_sx > 0.0) {
         m_sx -= 0.00001;
@@ -150,6 +160,13 @@ class Circle {
     }
 };
 
+float getrand(int max, int min, int i) {
+  float num;
+  srand(i * time(NULL));
+  num = rand() % (max - min + 1) + min;
+  return num;
+}
+
 void mainloop() {
 
   RenderWindow window(VideoMode({WIDTH, HEIGHT}), "window", Style::None, State::Windowed);
@@ -157,12 +174,36 @@ void mainloop() {
   window.setPosition({static_cast<int>(WIDTH - window.getSize().x / 2), static_cast<int>(HEIGHT - window.getSize().y / 2)});
 
 
-  Circle circles[11];
-  for (int i = 0; i < 11; i++) {
+  Circle circles[N];
+  for (int i = 0; i < N; i++) {
     circles[i] = Circle(i, 30.0, RED);
   }
-  int num = rand() % (11 - 0 + 1) + 0;
+  int num = getrand(N - 1, 0, 0);
+  float w;
+  float h;
+  for (int i = 0; i < N; i++) {
+    w = getrand(WIDTH, 10, i);
+    h = getrand(HEIGHT, 10, i);
+    circles[i].setpos({w, h});
+    for (int j = N - 1; j >= 0; j--) {
+      FloatRect aBounds = circles[i].getcircle()->getGlobalBounds();
+      FloatRect bBounds = circles[j].getcircle()->getGlobalBounds();
+      if (!aBounds.findIntersection(bBounds)) {
+      }
+      else if (aBounds.findIntersection(bBounds)) {
+        w = getrand(WIDTH, 10, j);
+        h = getrand(HEIGHT, 10, j);
+        circles[i].setpos({w, h});
+      }
+    }
+  }
+
+
   Circle* active = &circles[num];
+  circles[num].setactive(true);
+  cout << num << endl;
+
+
 
   while (window.isOpen()) {
 
@@ -180,16 +221,16 @@ void mainloop() {
             circles[num].setactive(true);
             break;
           case (Keyboard::Key::H):
-            active->setsx(active->getsx() - 0.1);
+            active->setsx(active->getsx() - 1.0);
             break;
           case (Keyboard::Key::J):
-            active->setsy(active->getsy() + 0.1);
+            active->setsy(active->getsy() + 1.0);
             break;
           case (Keyboard::Key::K):
-            active->setsy(active->getsy() - 0.1);
+            active->setsy(active->getsy() - 1.0);
             break;
           case (Keyboard::Key::L):
-            active->setsx(active->getsx() + 0.1);
+            active->setsx(active->getsx() + 1.0);
             break;
           default:
             break;
@@ -200,14 +241,14 @@ void mainloop() {
     window.clear(GRAY);
 
     for (int i = 0; i < N; i++) {
-      circles[i].draw(&window);
-      circles[i].move();
       if (circles[i].getactive() == true) {
         active = &circles[i];
         circles[i].setcolor(GREEN);
       }
       else
         circles[i].setcolor(RED);
+      circles[i].draw(&window);
+      circles[i].move();
     }
 
     window.display();
@@ -216,7 +257,8 @@ void mainloop() {
 
 int main(void) {
 
+
   mainloop();
-  
+
   return 0;
 }

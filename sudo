@@ -1,0 +1,1 @@
+1 tee /sys/class/backlight/appletb_backlight/brightness
