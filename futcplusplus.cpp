@@ -2,17 +2,19 @@
 #include <stdlib.h>
 #include <SFML/Graphics.hpp>
 
-#define WIDTH (VideoMode::getDesktopMode().size.x / 2)
-#define HEIGHT (VideoMode::getDesktopMode().size.y / 2)
-#define N 11
-#define GRAY (Color){77, 77, 77, 255}
-#define RED (Color){255,12,123, 255}
-#define GREEN (Color){55, 255, 155, 255}
-#define WHITE (Color){255, 255, 255, 255}
-#define RADIUS 30.0
-
 using namespace std;
 using namespace sf;
+
+const unsigned int WIDTH = (VideoMode::getDesktopMode().size.x / 2);
+const unsigned int HEIGHT = (VideoMode::getDesktopMode().size.y / 2);
+constexpr int N = 11;
+constexpr float RADIUS = 30.f;
+constexpr Color GRAY{77, 77, 77, 255};
+constexpr Color RED{255,12,123, 255};
+constexpr Color GREEN{55, 255, 155, 255};
+constexpr Color WHITE{255, 255, 255, 255};
+
+static Font font;
 
 class Circle {
   private:
@@ -44,6 +46,8 @@ class Circle {
     }
 
     Circle(int num, float radius, Color color) : m_text(m_font) {
+      if (!m_font.openFromFile("/usr/share/fonts/TTF/Arial.TTF"))
+        throw runtime_error("failed to load font");
       m_num = num;
       m_radius = radius;
       m_color = color;
@@ -63,8 +67,6 @@ class Circle {
 
     void setpos(Vector2f pos) {
       m_circle.setPosition(pos);
-      if (!m_font.openFromFile("/usr/share/fonts/TTF/Arial.TTF"))
-        throw runtime_error("failed to load font");
       m_text.setFont(m_font);
       m_text.setString(to_string(m_num));
       m_text.setPosition(pos);
