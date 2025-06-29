@@ -1,7 +1,6 @@
 #include <iostream>
 #include <stdlib.h>
 #include <SFML/Graphics.hpp>
-#include <SFML/Window.hpp>
 
 #define WIDTH (VideoMode::getDesktopMode().size.x / 2)
 #define HEIGHT (VideoMode::getDesktopMode().size.y / 2)
@@ -27,10 +26,11 @@ class Circle {
 
     bool m_active;
 
-    Font m_font("/usr/share/fonts/TTF/Arial.ttf");
-    Text m_text(m_font, to_string(m_num), 30);
+    Font m_font;
+    Text m_text;
+
   public:
-    Circle() {
+    Circle() : m_text(m_font) {
       m_num = 0;
       m_radius = 0.0;
       m_color = WHITE;
@@ -38,10 +38,12 @@ class Circle {
       m_sy = 0.0;
       m_active = false;
 
-      m_font = Font("/usr/share/fonts/TTF/Arial.ttf");
+      m_circle.setRadius(50.f);
+      m_circle.setFillColor(GREEN);
+      m_circle.setOrigin({m_circle.getRadius() / 2, m_circle.getRadius() / 2});
     }
 
-    Circle(int num, float radius, Color color) {
+    Circle(int num, float radius, Color color) : m_text(m_font) {
       m_num = num;
       m_radius = radius;
       m_color = color;
@@ -53,8 +55,6 @@ class Circle {
       m_circle.setOrigin({m_circle.getRadius() / 2, m_circle.getRadius() / 2});
       m_circle.setPosition({0, 0});
       m_circle.setFillColor(m_color);
-
-      m_font = Font("/usr/share/fonts/TTF/Arial.ttf");
     }
 
     Vector2f getpos() {
@@ -63,6 +63,13 @@ class Circle {
 
     void setpos(Vector2f pos) {
       m_circle.setPosition(pos);
+      if (!m_font.openFromFile("/usr/share/fonts/TTF/Arial.TTF"))
+        throw runtime_error("failed to load font");
+      m_text.setFont(m_font);
+      m_text.setString(to_string(m_num));
+      m_text.setPosition(pos);
+      m_text.setFillColor(Color::Black);
+      m_text.setCharacterSize(m_radius);
     }
 
     void draw(RenderWindow* window) {
@@ -120,20 +127,20 @@ class Circle {
       m_circle.move({m_sx, m_sy});
 
       if (m_sx > 0.0) {
-        m_sx -= 0.00001;
+        m_sx -= 0.05;
       }
       else if (m_sx < 0.0) {
-        m_sx += 0.00001;
+        m_sx += 0.05;
       }
       else {
         m_sx = 0.000000;
       }
 
       if (m_sy > 0.0) {
-        m_sy -= 0.00001;
+        m_sy -= 0.05;
       }
       else if (m_sy < 0.0) {
-        m_sy += 0.00001;
+        m_sy += 0.05;
       }
       else {
         m_sy = 0.000000;
@@ -157,6 +164,8 @@ class Circle {
         m_sy = -1.0 * m_sy;
       }
 
+      m_text.setPosition(m_circle.getPosition());
+
     }
 };
 
@@ -178,7 +187,8 @@ void mainloop() {
   for (int i = 0; i < N; i++) {
     circles[i] = Circle(i, 30.0, RED);
   }
-  int num = getrand(N - 1, 0, 0);
+  int num;
+  num = getrand(N - 1, 0, 0);
   float w;
   float h;
   for (int i = 0; i < N; i++) {
@@ -201,9 +211,6 @@ void mainloop() {
 
   Circle* active = &circles[num];
   circles[num].setactive(true);
-  cout << num << endl;
-
-
 
   while (window.isOpen()) {
 
@@ -256,7 +263,6 @@ void mainloop() {
 }
 
 int main(void) {
-
 
   mainloop();
 
